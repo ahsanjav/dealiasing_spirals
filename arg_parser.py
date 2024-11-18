@@ -19,7 +19,7 @@ def arg_parser():
     parser.add_argument("--batch_size", type=int, default=32, help='batch size')
     parser.add_argument("--train_files", type=str, default=['/Users/javeda2/Documents/data/_0_retro_cines_kspace_spiral.h5'], help='file names')
     parser.add_argument("--epochs", type=int, default=10, help='epochs')
-    parser.add_argument("--cuda", type=int, default=1, help='epochs')
+    parser.add_argument("--cuda", type=int, default=0, help='epochs')
 
     ns = Nestedspace()
     
