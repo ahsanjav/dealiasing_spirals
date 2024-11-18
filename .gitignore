@@ -1,0 +1,5 @@
+*.pyc
+FASTVDNET_dealiasing/*
+lightning_logs/*
+MNIST/*
+wandb/*
