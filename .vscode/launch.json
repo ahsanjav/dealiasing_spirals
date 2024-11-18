@@ -1,0 +1,30 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python Debugger: Current File with Arguments",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "train_model.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--train_files"
+                ,"/data_drive/_0_retro_cines_kspace_spiral.h5"
+                ,"/data_drive/_1_retro_cines_kspace_spiral.h5"
+                ,"/data_drive/_2_retro_cines_kspace_spiral.h5"
+                ,"/data_drive/_3_retro_cines_kspace_spiral.h5"
+                ,"/data_drive/_4_retro_cines_kspace_spiral.h5"
+                ,"/data_drive/_5_retro_cines_kspace_spiral.h5"
+                ,"/data_drive/_6_retro_cines_kspace_spiral.h5"
+                ,"/data_drive/_7_retro_cines_kspace_spiral.h5"
+                ,"--batch_size","32"
+                ,"--epochs","100"
+                ,"--exp_name","cuda_test"
+                ,"--cuda","1"
+            ]
+        }
+    ]
+}

@@ -26,7 +26,7 @@ class LitModel(L.LightningModule):
         y_hat = self.encoder(x)
         loss = F.mse_loss(y, y_hat)
         ims = []
-        for idx in range(x.shape[0]):
+        for idx in range(32):
             ims.append(torch.concat((x[idx,-1,:,:],y[idx,-1,:,:],y_hat[idx,-1,:,:]),axis=1))
         
         wandb_logger.log_image(key="train_images", images=ims)
@@ -39,7 +39,7 @@ class LitModel(L.LightningModule):
         x, y = batch
         y_hat = self.encoder(x)
         ims = []
-        for idx in range(x.shape[0]):
+        for idx in range(32):
             ims.append(torch.concat((x[idx,-1,:,:],y[idx,-1,:,:],y_hat[idx,-1,:,:]),axis=1))
         
         wandb_logger.log_image(key="test_images", images=ims)
@@ -51,7 +51,7 @@ class LitModel(L.LightningModule):
         x, y = batch
         y_hat = self.encoder(x)
         ims = []
-        for idx in range(x.shape[0]):
+        for idx in range(32):
             ims.append(torch.concat((x[idx,-1,:,:],y[idx,-1,:,:],y_hat[idx,-1,:,:]),axis=1))
         wandb_logger.log_image(key="val_images", images=ims)
 
@@ -112,11 +112,11 @@ wandb_logger = WandbLogger(entity='gadgetron',project="FASTVDNET_dealiasing", lo
 
 # train model
 if(config_default.cuda):
-    trainer = L.Trainer(devices=1,
+    trainer = L.Trainer(devices=4,
                     accelerator="gpu",
                     #strategy="deepspeed_stage_2",
-                    #strategy="",
-                    precision="16-mixed",
+                    strategy="ddp",
+                    #precision="16-mixed",
                     max_epochs=config_default.epochs,
                     logger=wandb_logger)   
 else: 
@@ -127,8 +127,8 @@ else:
                     logger=wandb_logger)
 
 
-trainer.fit(model=model, train_dataloaders=DataLoader(train_set, num_workers=8,batch_size=config_default.batch_size),
-            val_dataloaders=DataLoader(valid_set, num_workers=8,batch_size=config_default.batch_size))
+trainer.fit(model=model, train_dataloaders=DataLoader(train_set, num_workers=config_default.num_workers,batch_size=config_default.batch_size),
+            val_dataloaders=DataLoader(valid_set, num_workers=config_default.num_workers,batch_size=config_default.batch_size))
 
-trainer.test(model=model, dataloaders=DataLoader(test_set, num_workers=8,batch_size=config_default.batch_size))
+trainer.test(model=model, dataloaders=DataLoader(test_set, num_workers=config_default.num_workers,batch_size=config_default.batch_size))
 
