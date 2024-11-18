@@ -63,10 +63,10 @@ for file in config_default.train_files:
         raise RuntimeError(f"File not found: {file}")
     print(f"file exist - {file}")
 
+total_keys = []
+h5files    = []
 for file in config_default.train_files:
-    
-    total_keys = []
-    h5files    = []
+
     if not os.path.exists(file):
         raise RuntimeError(f"File not found: {file}")
 
@@ -100,13 +100,14 @@ train_set, valid_set, test_set = data.random_split(train_set, [train_set_size, v
 # model
 model = LitModel(FastVDnet(config_default))
 
-wandb_logger = WandbLogger(entity='gadgetron',project="FASTVDNET_dealiasing", log_model="all",name='Testing models')
+wandb_logger = WandbLogger(entity='gadgetron',project="FASTVDNET_dealiasing", log_model="all",name=config_default.exp_name)
 
 # train model
 if(config_default.cuda):
-    trainer = L.Trainer(devices=4,
+    trainer = L.Trainer(devices=1,
                     accelerator="gpu",
-                    strategy="deepspeed_stage_2",
+                    #strategy="deepspeed_stage_2",
+                    #strategy="",
                     precision="16-mixed",
                     max_epochs=config_default.epochs,
                     logger=wandb_logger)   
@@ -118,8 +119,8 @@ else:
                     logger=wandb_logger)
 
 
-trainer.fit(model=model, train_dataloaders=DataLoader(train_set, batch_size=config_default.batch_size),
-            val_dataloaders=DataLoader(valid_set, batch_size=config_default.batch_size))
+trainer.fit(model=model, train_dataloaders=DataLoader(train_set, num_workers=8,batch_size=config_default.batch_size),
+            val_dataloaders=DataLoader(valid_set, num_workers=8,batch_size=config_default.batch_size))
 
-trainer.test(model=model, dataloaders=DataLoader(test_set, batch_size=config_default.batch_size))
+trainer.test(model=model, dataloaders=DataLoader(test_set, num_workers=8,batch_size=config_default.batch_size))
 
