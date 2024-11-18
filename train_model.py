@@ -25,8 +25,11 @@ class LitModel(L.LightningModule):
         x, y = batch
         y_hat = self.encoder(x)
         loss = F.mse_loss(y, y_hat)
-        for idx in range(3):
-            wandb_logger.log_image(key="train_images", images=[torch.concat((x[idx,-1,:,:],y[idx,-1,:,:],y_hat[idx,-1,:,:]),axis=1)])
+        ims = []
+        for idx in range(x.shape[0]):
+            ims.append(torch.concat((x[idx,-1,:,:],y[idx,-1,:,:],y_hat[idx,-1,:,:]),axis=1))
+        
+        wandb_logger.log_image(key="train_images", images=ims)
         self.log("train_loss", loss)
 
         return loss
@@ -35,8 +38,11 @@ class LitModel(L.LightningModule):
         # this is the test loop
         x, y = batch
         y_hat = self.encoder(x)
-        for idx in range(3):
-            wandb_logger.log_image(key="test_images", images=[torch.concat((x[idx,-1,:,:],y[idx,-1,:,:],y_hat[idx,-1,:,:]),axis=1)])
+        ims = []
+        for idx in range(x.shape[0]):
+            ims.append(torch.concat((x[idx,-1,:,:],y[idx,-1,:,:],y_hat[idx,-1,:,:]),axis=1))
+        
+        wandb_logger.log_image(key="test_images", images=ims)
         test_loss = F.mse_loss(y, y_hat)
         self.log("test_loss", test_loss)
 
@@ -44,8 +50,10 @@ class LitModel(L.LightningModule):
         # this is the validation loop
         x, y = batch
         y_hat = self.encoder(x)
-        for idx in range(3):
-            wandb_logger.log_image(key="val_images", images=[torch.concat((x[idx,-1,:,:],y[idx,-1,:,:],y_hat[idx,-1,:,:]),axis=1)])
+        ims = []
+        for idx in range(x.shape[0]):
+            ims.append(torch.concat((x[idx,-1,:,:],y[idx,-1,:,:],y_hat[idx,-1,:,:]),axis=1))
+        wandb_logger.log_image(key="val_images", images=ims)
 
         val_loss = F.mse_loss(y, y_hat)
         self.log("val_loss", val_loss)
