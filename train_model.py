@@ -24,13 +24,19 @@ class LitModel(L.LightningModule):
         # training_step defines the train loop.
         x, y = batch
         y_hat = self.encoder(x)
-        loss = F.mse_loss(y, y_hat)
+        loss = F.mse_loss(y, y_hat) + F.l1_loss(y,y_hat)
         ims = []
         for idx in range(x.shape[0]):
             ims.append(torch.concat((x[idx,-1,:,:],y[idx,-1,:,:],y_hat[idx,-1,:,:]),axis=1))
         
         wandb_logger.log_image(key="train_images", images=ims)
+        
+        l1_loss  = F.l1_loss(y,y_hat)
+        mse_loss = F.mse_loss(y, y_hat)
+        loss = l1_loss + mse_loss
         self.log("train_loss", loss,sync_dist=True)
+        self.log("train_loss_mse", mse_loss,sync_dist=True)
+        self.log("train_loss_l1", l1_loss,sync_dist=True)
 
         return loss
     
@@ -43,8 +49,14 @@ class LitModel(L.LightningModule):
             ims.append(torch.concat((x[idx,-1,:,:],y[idx,-1,:,:],y_hat[idx,-1,:,:]),axis=1))
         
         wandb_logger.log_image(key="test_images", images=ims)
-        test_loss = F.mse_loss(y, y_hat)
+        
+        l1_loss  = F.l1_loss(y,y_hat)
+        mse_loss = F.mse_loss(y, y_hat)
+        test_loss = l1_loss + mse_loss
         self.log("test_loss", test_loss,sync_dist=True)
+        self.log("test_loss_mse", mse_loss,sync_dist=True)
+        self.log("test_loss_l1", l1_loss,sync_dist=True)
+
 
     def validation_step(self, batch, batch_idx):
         # this is the validation loop
@@ -55,12 +67,28 @@ class LitModel(L.LightningModule):
             ims.append(torch.concat((x[idx,-1,:,:],y[idx,-1,:,:],y_hat[idx,-1,:,:]),axis=1))
         wandb_logger.log_image(key="val_images", images=ims)
 
-        val_loss = F.mse_loss(y, y_hat)
+        l1_loss  = F.l1_loss(y,y_hat)
+        mse_loss = F.mse_loss(y, y_hat)
+        val_loss = l1_loss + mse_loss
         self.log("val_loss", val_loss,sync_dist=True)
+        self.log("val_loss_mse", mse_loss,sync_dist=True)
+        self.log("val_loss_l1", l1_loss,sync_dist=True)
+
+
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
-        return optimizer
+        return {
+        "optimizer": optimizer,
+        "lr_scheduler": {
+            "scheduler": torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, ...),
+            "monitor": "val_loss",
+            "frequency": "trainer.check_val_every_n_epoch",
+            # If "monitor" references validation metrics, then "frequency" should be set to a
+            # multiple of "trainer.check_val_every_n_epoch".
+        },
+        }
+        #return optimizer
 
 #configure 
 config_default = arg_parser()
@@ -109,6 +137,7 @@ train_set, valid_set, test_set = data.random_split(train_set, [train_set_size, v
 model = LitModel(FastVDnet(config_default))
 
 wandb_logger = WandbLogger(entity='gadgetron',project="FASTVDNET_dealiasing", log_model="all",name=config_default.exp_name)
+wandb_logger.experiment.log({"test_set": test_set.indices})
 
 # train model
 if(config_default.cuda):
