@@ -22,8 +22,10 @@
                 ,"/data_drive/_7_retro_cines_kspace_spiral.h5"
                 ,"--batch_size","32"
                 ,"--epochs","100"
-                ,"--exp_name","cuda_test"
+                ,"--exp_name","fastvdnet_unet_mag_exp1_r6"
                 ,"--cuda","1"
+                ,"--num_workers","6"
+                ,"--usample","6.0"
             ]
         }
     ]

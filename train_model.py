@@ -26,11 +26,11 @@ class LitModel(L.LightningModule):
         y_hat = self.encoder(x)
         loss = F.mse_loss(y, y_hat)
         ims = []
-        for idx in range(32):
+        for idx in range(x.shape[0]):
             ims.append(torch.concat((x[idx,-1,:,:],y[idx,-1,:,:],y_hat[idx,-1,:,:]),axis=1))
         
         wandb_logger.log_image(key="train_images", images=ims)
-        self.log("train_loss", loss)
+        self.log("train_loss", loss,sync_dist=True)
 
         return loss
     
@@ -39,24 +39,24 @@ class LitModel(L.LightningModule):
         x, y = batch
         y_hat = self.encoder(x)
         ims = []
-        for idx in range(32):
+        for idx in range(x.shape[0]):
             ims.append(torch.concat((x[idx,-1,:,:],y[idx,-1,:,:],y_hat[idx,-1,:,:]),axis=1))
         
         wandb_logger.log_image(key="test_images", images=ims)
         test_loss = F.mse_loss(y, y_hat)
-        self.log("test_loss", test_loss)
+        self.log("test_loss", test_loss,sync_dist=True)
 
     def validation_step(self, batch, batch_idx):
         # this is the validation loop
         x, y = batch
         y_hat = self.encoder(x)
         ims = []
-        for idx in range(32):
+        for idx in range(x.shape[0]):
             ims.append(torch.concat((x[idx,-1,:,:],y[idx,-1,:,:],y_hat[idx,-1,:,:]),axis=1))
         wandb_logger.log_image(key="val_images", images=ims)
 
         val_loss = F.mse_loss(y, y_hat)
-        self.log("val_loss", val_loss)
+        self.log("val_loss", val_loss,sync_dist=True)
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
@@ -118,7 +118,8 @@ if(config_default.cuda):
                     strategy="ddp",
                     #precision="16-mixed",
                     max_epochs=config_default.epochs,
-                    logger=wandb_logger)   
+                    logger=wandb_logger,
+                    log_every_n_steps=4)   
 else: 
     trainer = L.Trainer(accelerator="mps", 
                     devices=1,

@@ -96,6 +96,8 @@ class MRIReconSpiralDatasetTrain():
             key_image       = self.images[i][0]
             key_image_out   = self.images[i][1]
             
+            key_image_out_parts = key_image_out.split('/')
+            key_image_out = key_image_out_parts[0]+'/1.0/'+key_image_out_parts[-1]
             in_image    = np.array(self.h5file[ind][key_image])
             out_image   = np.array(self.h5file[ind][key_image_out])
             

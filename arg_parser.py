@@ -14,7 +14,7 @@ def arg_parser():
     parser.add_argument("--normalize_images", type=int, default=1, help='normalize the images 0-1')
     parser.add_argument("--model_type", type=str, default='FASTVDNET', help='type of model to use')
     parser.add_argument("--complex_i", type=int, default=0, help='use complex images')
-    parser.add_argument("--usample", type=int, default=1.0, help='undersampling_factor')
+    parser.add_argument("--usample", type=float, default=1.0, help='undersampling_factor')
     parser.add_argument("--no_in_channel", type=int, default=1, help='no of input channels')
     parser.add_argument("--batch_size", type=int, default=32, help='batch size')
     parser.add_argument("--train_files", type=str,nargs='+', default=['/Users/javeda2/Documents/data/_0_retro_cines_kspace_spiral.h5'], help='file names')
