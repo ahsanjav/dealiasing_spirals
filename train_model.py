@@ -10,7 +10,7 @@ from torchvision import datasets
 import lightning as L
 from lightning.pytorch.loggers import WandbLogger
 import wandb
-from model_fastvdnet import FastVDnet
+from model_fastvdnet import FastVDnet,FastVDnet_7,FastVDnet_9
 from spiral_data import *
 from arg_parser import arg_parser
 
@@ -77,12 +77,12 @@ class LitModel(L.LightningModule):
 
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
+        optimizer = torch.optim.Adam(self.parameters(), lr=1e-2)
         return {
         "optimizer": optimizer,
         "lr_scheduler": {
             "scheduler": torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer),
-            "monitor": "val_loss",
+            "monitor": "train_loss",
             "frequency": 1,
             "interval": "epoch",
             # If "monitor" references validation metrics, then "frequency" should be set to a
@@ -111,7 +111,7 @@ for file in config_default.train_files:
     h5file = h5py.File(file, libver='earliest', mode='r')
     keys = list(h5file.keys())
 
-    ratio = [0.7,0.2,0.1]
+    ratio = [0.7,0.15,0.15]
 
     keys = [k+f"/{config_default.usample}" for k in keys]
     total_keys.append(keys)
@@ -135,7 +135,14 @@ seed = torch.Generator().manual_seed(42)
 train_set, valid_set, test_set = data.random_split(train_set, [train_set_size, valid_set_size,test_set_size], generator=seed)
 
 # model
-model = LitModel(FastVDnet(config_default))
+if(config_default.time == 5):
+    m = FastVDnet(config_default)
+elif(config_default.time == 7):
+    m = FastVDnet_7(config_default)
+elif(config_default.time == 9):
+    m = FastVDnet_9(config_default)
+
+model = LitModel(m)
 
 wandb_logger = WandbLogger(entity='gadgetron',project="FASTVDNET_dealiasing", log_model="all",name=config_default.exp_name)
 wandb_logger.experiment.log({"test_set": test_set.indices})

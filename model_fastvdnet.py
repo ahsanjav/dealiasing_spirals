@@ -12,7 +12,7 @@ class FastVDnet(nn.Module):
         super().__init__()
         self.config = config
         self.channels = config.no_in_channel
-        self.num_input_frames = config.time
+        self.num_input_frames = 5
         # Define models of each denoising stage
         self.temp1 = DenBlock(num_input_frames=3,outchannel=1)
         self.temp2 = DenBlock(num_input_frames=3,outchannel=1)
@@ -42,6 +42,102 @@ class FastVDnet(nn.Module):
 
         #Second stage
         x = self.temp2(x20, x21, x22)
+
+        if(self.channels>1):
+            x = torch.cat((x, x*0), dim=1) # adding second dim for FM imaging complex processing
+        
+        return x
+
+class FastVDnet_7(nn.Module):
+
+    def __init__(self, config) -> None:
+
+        super().__init__()
+        self.config = config
+        self.channels = config.no_in_channel
+        self.num_input_frames = 7
+        # Define models of each denoising stage
+        self.temp1 = DenBlock(num_input_frames=3,outchannel=1)
+        self.temp2 = FastVDnet(config)
+        
+        # Init weights
+        self.reset_params()
+
+    @staticmethod
+    def weight_init(m):
+        if isinstance(m, nn.Conv2d):
+            nn.init.kaiming_normal_(m.weight, nonlinearity='relu')
+
+    def reset_params(self):
+        for _, m in enumerate(self.modules()):
+            self.weight_init(m)
+
+    def forward(self, x):
+        '''Args:
+			x: Tensor, [N, num_frames*C, H, W] in the [0., 1.] range
+		'''
+		# Unpack inputs
+        (x0, x1, x2, x3, x4, x5, x6) = tuple(x[:, self.channels*m:self.channels*m+self.channels:2, :, :] for m in range(self.num_input_frames))
+
+        # First stage
+        x20 = self.temp1(x0, x1, x2)
+        x21 = self.temp1(x1, x2, x3)
+        x22 = self.temp1(x2, x3, x4)
+        x23 = self.temp1(x3, x4, x5)
+        x24 = self.temp1(x4, x5, x6)
+
+        #Second stage
+        x   = self.temp2(torch.cat((x20, x21, x22, x23, x24),axis=1))
+
+        if(self.channels>1):
+            x = torch.cat((x, x*0), dim=1) # adding second dim for FM imaging complex processing
+        
+        return x
+
+class FastVDnet_9(nn.Module):
+
+    def __init__(self, config) -> None:
+
+        super().__init__()
+        self.config = config
+        self.channels = config.no_in_channel
+        self.num_input_frames = 9
+        # Define models of each denoising stage
+        self.temp1 = DenBlock(num_input_frames=3,outchannel=1)
+        self.temp2 = FastVDnet_7(config)
+        
+        # Init weights
+        self.reset_params()
+
+    @staticmethod
+    def weight_init(m):
+        if isinstance(m, nn.Conv2d):
+            nn.init.kaiming_normal_(m.weight, nonlinearity='relu')
+
+    def reset_params(self):
+        for _, m in enumerate(self.modules()):
+            self.weight_init(m)
+
+    def forward(self, x):
+        '''Args:
+			x: Tensor, [N, num_frames*C, H, W] in the [0., 1.] range
+		'''
+		# Unpack inputs
+        (x0, x1, x2, x3, x4, x5, x6, x7, x8) = tuple(x[:, self.channels*m:self.channels*m+self.channels:2, :, :] for m in range(self.num_input_frames))
+
+        # First stage
+        x20 = self.temp1(x0, x1, x2)
+        x21 = self.temp1(x1, x2, x3)
+        x22 = self.temp1(x2, x3, x4)
+        x23 = self.temp1(x3, x4, x5)
+        x24 = self.temp1(x4, x5, x6)
+        x25 = self.temp1(x5, x6, x7)
+        x26 = self.temp1(x6, x7, x8)
+        
+
+        #Second stage
+        x   = self.temp2(torch.cat((x20, x21, x22, x23, x24, x25, x26),axis=1))
+
 
         if(self.channels>1):
             x = torch.cat((x, x*0), dim=1) # adding second dim for FM imaging complex processing
