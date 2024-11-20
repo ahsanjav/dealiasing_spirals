@@ -83,7 +83,8 @@ class LitModel(L.LightningModule):
         "lr_scheduler": {
             "scheduler": torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer),
             "monitor": "val_loss",
-            "frequency": "trainer.check_val_every_n_epoch",
+            "frequency": 1,
+            "interval": "epoch",
             # If "monitor" references validation metrics, then "frequency" should be set to a
             # multiple of "trainer.check_val_every_n_epoch".
         },
