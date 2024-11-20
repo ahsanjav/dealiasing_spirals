@@ -12,20 +12,21 @@
             "console": "integratedTerminal",
             "args": [
                 "--train_files"
-                ,"/data_drive/_0_retro_cines_kspace_spiral.h5"
-                ,"/data_drive/_1_retro_cines_kspace_spiral.h5"
-                ,"/data_drive/_2_retro_cines_kspace_spiral.h5"
-                ,"/data_drive/_3_retro_cines_kspace_spiral.h5"
-                ,"/data_drive/_4_retro_cines_kspace_spiral.h5"
-                ,"/data_drive/_5_retro_cines_kspace_spiral.h5"
-                ,"/data_drive/_6_retro_cines_kspace_spiral.h5"
-                ,"/data_drive/_7_retro_cines_kspace_spiral.h5"
+                ,"/mount/datalit/datalit/_0_retro_cines_kspace_spiral.h5"
+                ,"/mount/datalit/datalit/_1_retro_cines_kspace_spiral.h5"
+                ,"/mount/datalit/datalit/_2_retro_cines_kspace_spiral.h5"
+                ,"/mount/datalit/datalit/_3_retro_cines_kspace_spiral.h5"
+                ,"/mount/datalit/datalit/_4_retro_cines_kspace_spiral.h5"
+                ,"/mount/datalit/datalit/_5_retro_cines_kspace_spiral.h5"
+                ,"/mount/datalit/datalit/_6_retro_cines_kspace_spiral.h5"
+                ,"/mount/datalit/datalit/_7_retro_cines_kspace_spiral.h5"
                 ,"--batch_size","32"
                 ,"--epochs","100"
                 ,"--exp_name","fastvdnet_unet_mag_exp1_r6"
                 ,"--cuda","1"
                 ,"--num_workers","6"
                 ,"--usample","6.0"
+                ,"--time","9"
             ]
         }
     ]

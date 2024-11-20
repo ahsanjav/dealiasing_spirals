@@ -22,6 +22,7 @@ def arg_parser():
     parser.add_argument("--cuda", type=int, default=1, help='using servers')
     parser.add_argument("--num_workers", type=int, default=1, help='num workers')
     
+    
     parser.add_argument("--exp_name", type=str, default="cuda_t3st", help='name of the experiment')
     ns = Nestedspace()
     
