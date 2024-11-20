@@ -134,8 +134,10 @@ class MRIReconSpiralDatasetTrain():
             
             #input_ims  = torch.from_numpy(cutout_in.astype(np.float32))
             #output_ims = torch.from_numpy(cutout_out.astype(np.float32))
-            in_image = in_image[:,:,:,0]
-            out_image = out_image[:,:,:,0]
+            if(len(in_image.shape)>3):
+                in_image = in_image[:,:,:,0]
+                out_image = out_image[:,:,:,0]
+
             in_image = in_image.transpose(2,1,0)
             out_image = out_image.transpose(2,1,0)
             if(self.config.useLastImage):

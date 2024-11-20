@@ -17,7 +17,7 @@
                 ,"--epochs","100"
                 ,"--exp_name","test_vdnet"
                 ,"--cuda","1"
-                ,"--num_workers","6"
+                ,"--num_workers","1"
                 ,"--usample","6.0"
                 ,"--time","5"
             ]
