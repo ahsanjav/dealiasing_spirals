@@ -13,7 +13,7 @@ import wandb
 from model_fastvdnet import FastVDnet,FastVDnet_7,FastVDnet_9
 from spiral_data import *
 from arg_parser import arg_parser
-
+from utils.util_func import real_imag2complex
 
 class LitModel(L.LightningModule):
     def __init__(self, encoder):
@@ -27,7 +27,10 @@ class LitModel(L.LightningModule):
         loss = F.mse_loss(y, y_hat) + F.l1_loss(y,y_hat)
         ims = []
         for idx in range(x.shape[0]):
-            ims.append(torch.concat((x[idx,-1,:,:],y[idx,-1,:,:],y_hat[idx,-1,:,:]),axis=1))
+            if(config_default.complex_i):
+                ims.append(torch.abs(real_imag2complex(torch.concat((x[idx,-2:,:,:],y[idx,:,:,:],y_hat[idx,:,:,:]),axis=2),axis=0)))
+            else:
+                ims.append(torch.concat((x[idx,-1,:,:],y[idx,-1,:,:],y_hat[idx,-1,:,:]),axis=1))
         
         wandb_logger.log_image(key="train_images", images=ims)
         
@@ -46,8 +49,11 @@ class LitModel(L.LightningModule):
         y_hat = self.encoder(x)
         ims = []
         for idx in range(x.shape[0]):
-            ims.append(torch.concat((x[idx,-1,:,:],y[idx,-1,:,:],y_hat[idx,-1,:,:]),axis=1))
-        
+            if(config_default.complex_i):
+                ims.append(torch.abs(real_imag2complex(torch.concat((x[idx,-2:,:,:],y[idx,:,:,:],y_hat[idx,:,:,:]),axis=2),axis=0)))
+            else:
+                ims.append(torch.concat((x[idx,-1,:,:],y[idx,-1,:,:],y_hat[idx,-1,:,:]),axis=1))
+                
         wandb_logger.log_image(key="test_images", images=ims)
         
         l1_loss  = F.l1_loss(y,y_hat)
@@ -64,8 +70,11 @@ class LitModel(L.LightningModule):
         y_hat = self.encoder(x)
         ims = []
         for idx in range(x.shape[0]):
-            ims.append(torch.concat((x[idx,-1,:,:],y[idx,-1,:,:],y_hat[idx,-1,:,:]),axis=1))
-        wandb_logger.log_image(key="val_images", images=ims)
+            if(config_default.complex_i):
+                ims.append(torch.abs(real_imag2complex(torch.concat((x[idx,-2:,:,:],y[idx,:,:,:],y_hat[idx,:,:,:]),axis=2),axis=0)))
+            else:
+                ims.append(torch.concat((x[idx,-1,:,:],y[idx,-1,:,:],y_hat[idx,-1,:,:]),axis=1))
+                wandb_logger.log_image(key="val_images", images=ims)
 
         l1_loss  = F.l1_loss(y,y_hat)
         mse_loss = F.mse_loss(y, y_hat)
@@ -77,7 +86,7 @@ class LitModel(L.LightningModule):
 
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=1e-4)
+        optimizer = torch.optim.Adam(self.parameters(), lr=1e-2)
         # return {
         # "optimizer": optimizer,
         # "lr_scheduler": {
@@ -108,7 +117,7 @@ for file in config_default.train_files:
         raise RuntimeError(f"File not found: {file}")
 
     logging.info(f"reading from file: {file}")
-    h5file = h5py.File(file, libver='earliest', mode='r')
+    h5file = h5py.File(file, mode='r')
     keys = list(h5file.keys())
 
     ratio = [0.7,0.15,0.15]
@@ -119,8 +128,8 @@ for file in config_default.train_files:
     #fix for a bug in AJ's data gen
     keyu =[]
     for k in keys:
-        #if len(k)>15:
-        keyu.append(k)
+        if config_default.use_non_appended_keys or len(k)>15:
+            keyu.append(k)
 
     total_keys.append(keyu)
     h5files.append(h5file)

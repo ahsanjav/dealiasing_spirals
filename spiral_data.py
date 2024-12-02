@@ -166,23 +166,32 @@ class MRIReconSpiralDatasetTrain():
                 in_image = in_image/1000.0
                 out_image = out_image/1000.0
 
-            if(self.config.model_type ==  'FASTVDNET'):
+            if(self.config.model_type ==  'FASTVDNET' and not self.config.complex_i):
                 in_image  = np.abs(in_image)
                 out_image = np.abs(out_image)
-
-            if(self.config.complex_i): 
+            elif (self.config.model_type ==  'FASTVDNET' and self.config.complex_i):
+                out_image = out_image[np.newaxis,:,:,:]
+                in_image  = in_image[np.newaxis,:,:,:]
+                
                 in_image  = np.concatenate((in_image.real, in_image.imag),axis=0)/1.0#.transpose([1,0,2,3])
                 out_image = np.concatenate((out_image.real, out_image.imag),axis=0)/1.0#.transpose([1,0,2,3])
-            else:
-                in_image = abs(in_image)
-                out_image = abs(out_image)
+
+                out_image = out_image[:,-1,:,:]
+                in_image  = in_image.reshape(-1,in_image.shape[-2],in_image.shape[-1])
+
+            # if(self.config.complex_i): 
+            #     in_image  = np.concatenate((in_image.real, in_image.imag),axis=0)/1.0#.transpose([1,0,2,3])
+            #     out_image = np.concatenate((out_image.real, out_image.imag),axis=0)/1.0#.transpose([1,0,2,3])
+            # else:
+            #     in_image = abs(in_image)
+            #     out_image = abs(out_image)
             
             #if(out_image.shape != in_image.shape):
             #    out_image = np.tile(out_image[:,-1,:,:],[1,in_image.shape[1],1,1])
 
-            if(self.config.model_type ==  'FASTVDNET'):
-                out_image = out_image[-1,:,:]
-                out_image = out_image[np.newaxis,:,:]
+            # if(self.config.model_type ==  'FASTVDNET'):
+            #     out_image = out_image[-1,:,:]
+            #     out_image = out_image[np.newaxis,:,:]
 
             
 
