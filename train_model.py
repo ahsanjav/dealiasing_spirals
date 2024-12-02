@@ -114,8 +114,18 @@ for file in config_default.train_files:
     ratio = [0.7,0.15,0.15]
 
     keys = [k+f"/{config_default.usample}" for k in keys]
-    total_keys.append(keys)
+    
+    #fix for a bug in AJ's data gen
+    keyu =[]
+    for k in keys:
+        if len(k)>15:
+            keyu.append(k)
+
+    total_keys.append(keyu)
     h5files.append(h5file)
+
+
+
 
 train_set=[]
 for (i,h_file) in enumerate(h5files):
@@ -149,7 +159,7 @@ wandb_logger.experiment.log({"test_set": test_set.indices})
 
 # train model
 if(config_default.cuda):
-    trainer = L.Trainer(devices=4,
+    trainer = L.Trainer(devices=config_default.gpus,
                     accelerator="gpu",
                     #strategy="deepspeed_stage_2",
                     strategy="ddp",

@@ -98,102 +98,110 @@ class MRIReconSpiralDatasetTrain():
             
             key_image_out_parts = key_image_out.split('/')
             key_image_out = key_image_out_parts[0]+'/1.0/'+key_image_out_parts[-1]
-            in_image    = np.array(self.h5file[ind][key_image])
-            out_image   = np.array(self.h5file[ind][key_image_out])
-            
-        if in_image.ndim == 2: 
-            in_image = in_image[np.newaxis,:,:]
-            out_image = out_image[np.newaxis,:,:]
-        
-        
-        out_image   = out_image.astype(np.complex64)
-        in_image    = in_image.astype(np.complex64)
-       # in_image, out_image = self.random_flip(in_image, out_image)
-        
-#         T, CHA, RO, E1 = in_image.shape
-#         s_x, s_y, s_t = self.get_cutout_range(in_image)
-
-#         if(RO>=self.cutout_shape[0] and E1>=self.cutout_shape[1]):
-# #                if(self.use_complex): # Commented out because we will always use complex for recon - I love complex numbers :D
-#             patch_data_in  = self.do_cutout(in_image, s_x, s_y, s_t)
-#             patch_data_out = self.do_cutout(out_image, s_x, s_y, s_t)
-#             cutout_in  = np.concatenate((patch_data_in.real, patch_data_in.imag),axis=1)
-#             cutout_out = np.concatenate((patch_data_out.real, patch_data_out.imag),axis=1)
-            
-#             t_indexes = np.arange(cutout_in.shape[0])
-#             np.random.shuffle(t_indexes)
-
-#             np.take(cutout_in, t_indexes, axis=0, out=cutout_in)
-#             np.take(cutout_out, t_indexes, axis=0, out=cutout_out)
-        
-        #input_ims  = torch.from_numpy(cutout_in.astype(np.float32))
-        #output_ims = torch.from_numpy(cutout_out.astype(np.float32))
-        in_image = in_image[:,:,:,0]
-        out_image = out_image[:,:,:,0]
-        in_image = in_image.transpose(2,1,0)
-        out_image = out_image.transpose(2,1,0)
-        if(self.config.useLastImage):
-            out_image = np.tile(out_image[-1,:,:],[in_image.shape[0],1,1])
-
-        in_image  = in_image[-1*self.config.time:,:,:]                     
-        # if(in_image.ndim <5):
-        #     in_image  = in_image[np.newaxis,:,:,:]
-        #     if(out_image.ndim<3):
-        #         out_image = out_image[np.newaxis,np.newaxis,:,:]
-        #     else:    
-        #         out_image = out_image[np.newaxis,:,:,:]
-                
-        if(self.config.normalize_images):
-            
-            normalize = lambda x: x/np.tile(np.max(np.abs(x),axis=(1,2)),[x.shape[1],1,1]).transpose(2,0,1)
-            
-            
-            #in_image = in_image / np.amax(np.abs(in_image),axis=1)
-            if(not (np.count_nonzero(np.max(np.abs(in_image),axis=(1,2))==0)>0 and np.count_nonzero(np.max(np.abs(out_image),axis=(1,2))==0))>0):
-                in_image = normalize(in_image)
-                out_image = normalize(out_image)
-            else:
+            data_set_failed = 0
+            try:
+                in_image    = np.array(self.h5file[ind][key_image])
+                out_image   = np.array(self.h5file[ind][key_image_out])
+            except:
+                print('Dataset not working')
+                data_set_failed = 1
                 pass
-        else:
-            in_image = in_image/1000.0
-            out_image = out_image/1000.0
-
-        if(self.config.model_type ==  'FASTVDNET'):
-            in_image  = np.abs(in_image)
-            out_image = np.abs(out_image)
-
-        if(self.config.complex_i): 
-            in_image  = np.concatenate((in_image.real, in_image.imag),axis=0)/1.0#.transpose([1,0,2,3])
-            out_image = np.concatenate((out_image.real, out_image.imag),axis=0)/1.0#.transpose([1,0,2,3])
-        else:
-            in_image = abs(in_image)
-            out_image = abs(out_image)
-        
-        #if(out_image.shape != in_image.shape):
-        #    out_image = np.tile(out_image[:,-1,:,:],[1,in_image.shape[1],1,1])
-
-        if(self.config.model_type ==  'FASTVDNET'):
-            out_image = out_image[-1,:,:]
-            out_image = out_image[np.newaxis,:,:]
-
-        
-
-            #out_image = out_image / np.max(np.abs(out_image.ravel()))
+        if not data_set_failed:    
+            if in_image.ndim == 2: 
+                in_image = in_image[np.newaxis,:,:]
+                out_image = out_image[np.newaxis,:,:]
             
-        out_image[np.isnan(out_image)]=0
-        in_image [np.isnan(in_image)]=0
+            
+            out_image   = out_image.astype(np.complex64)
+            in_image    = in_image.astype(np.complex64)
+        # in_image, out_image = self.random_flip(in_image, out_image)
+            
+    #         T, CHA, RO, E1 = in_image.shape
+    #         s_x, s_y, s_t = self.get_cutout_range(in_image)
+
+    #         if(RO>=self.cutout_shape[0] and E1>=self.cutout_shape[1]):
+    # #                if(self.use_complex): # Commented out because we will always use complex for recon - I love complex numbers :D
+    #             patch_data_in  = self.do_cutout(in_image, s_x, s_y, s_t)
+    #             patch_data_out = self.do_cutout(out_image, s_x, s_y, s_t)
+    #             cutout_in  = np.concatenate((patch_data_in.real, patch_data_in.imag),axis=1)
+    #             cutout_out = np.concatenate((patch_data_out.real, patch_data_out.imag),axis=1)
+                
+    #             t_indexes = np.arange(cutout_in.shape[0])
+    #             np.random.shuffle(t_indexes)
+
+    #             np.take(cutout_in, t_indexes, axis=0, out=cutout_in)
+    #             np.take(cutout_out, t_indexes, axis=0, out=cutout_out)
+            
+            #input_ims  = torch.from_numpy(cutout_in.astype(np.float32))
+            #output_ims = torch.from_numpy(cutout_out.astype(np.float32))
+            if(len(in_image.shape)>3):
+                in_image = in_image[:,:,:,0]
+                out_image = out_image[:,:,:,0]
+
+            in_image = in_image.transpose(2,1,0)
+            out_image = out_image.transpose(2,1,0)
+            if(self.config.useLastImage):
+                out_image = np.tile(out_image[-1,:,:],[in_image.shape[0],1,1])
+
+            in_image  = in_image[-1*self.config.time:,:,:]                     
+            # if(in_image.ndim <5):
+            #     in_image  = in_image[np.newaxis,:,:,:]
+            #     if(out_image.ndim<3):
+            #         out_image = out_image[np.newaxis,np.newaxis,:,:]
+            #     else:    
+            #         out_image = out_image[np.newaxis,:,:,:]
+                    
+            if(self.config.normalize_images):
+                
+                normalize = lambda x: x/np.tile(np.max(np.abs(x),axis=(1,2)),[x.shape[1],1,1]).transpose(2,0,1)
+                
+                
+                #in_image = in_image / np.amax(np.abs(in_image),axis=1)
+                if(not (np.count_nonzero(np.max(np.abs(in_image),axis=(1,2))==0)>0 and np.count_nonzero(np.max(np.abs(out_image),axis=(1,2))==0))>0):
+                    in_image = normalize(in_image)
+                    out_image = normalize(out_image)
+                else:
+                    pass
+            else:
+                in_image = in_image/1000.0
+                out_image = out_image/1000.0
+
+            if(self.config.model_type ==  'FASTVDNET'):
+                in_image  = np.abs(in_image)
+                out_image = np.abs(out_image)
+
+            if(self.config.complex_i): 
+                in_image  = np.concatenate((in_image.real, in_image.imag),axis=0)/1.0#.transpose([1,0,2,3])
+                out_image = np.concatenate((out_image.real, out_image.imag),axis=0)/1.0#.transpose([1,0,2,3])
+            else:
+                in_image = abs(in_image)
+                out_image = abs(out_image)
+            
+            #if(out_image.shape != in_image.shape):
+            #    out_image = np.tile(out_image[:,-1,:,:],[1,in_image.shape[1],1,1])
+
+            if(self.config.model_type ==  'FASTVDNET'):
+                out_image = out_image[-1,:,:]
+                out_image = out_image[np.newaxis,:,:]
 
             
 
+                #out_image = out_image / np.max(np.abs(out_image.ravel()))
+                
+            out_image[np.isnan(out_image)]=0
+            in_image [np.isnan(in_image)]=0
 
-        input_ims   = torch.from_numpy(in_image.astype(np.float32))
-        output_ims  = torch.from_numpy(out_image.astype(np.float32))
+                
 
-            
-        if( not self.config.model_type ==  'FASTVDNET' and out_image.shape != in_image.shape):
-            pass
-        else:
-            return input_ims, output_ims
+
+            input_ims   = torch.from_numpy(in_image.astype(np.float32))
+            output_ims  = torch.from_numpy(out_image.astype(np.float32))
+
+                
+            if( not self.config.model_type ==  'FASTVDNET' and out_image.shape != in_image.shape):
+                pass
+            else:
+                return input_ims, output_ims
 
     def random_flip(self, data, data2):
             """
