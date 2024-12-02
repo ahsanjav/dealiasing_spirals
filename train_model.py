@@ -78,18 +78,18 @@ class LitModel(L.LightningModule):
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=1e-2)
-        return {
-        "optimizer": optimizer,
-        "lr_scheduler": {
-            "scheduler": torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer),
-            "monitor": "train_loss",
-            "frequency": 1,
-            "interval": "epoch",
-            # If "monitor" references validation metrics, then "frequency" should be set to a
-            # multiple of "trainer.check_val_every_n_epoch".
-        },
-        }
-        #return optimizer
+        # return {
+        # "optimizer": optimizer,
+        # "lr_scheduler": {
+        #     "scheduler": torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer),
+        #     "monitor": "train_loss",
+        #     "frequency": 1,
+        #     "interval": "epoch",
+        #     # If "monitor" references validation metrics, then "frequency" should be set to a
+        #     # multiple of "trainer.check_val_every_n_epoch".
+        # },
+        # }
+        return optimizer
 
 #configure 
 config_default = arg_parser()
