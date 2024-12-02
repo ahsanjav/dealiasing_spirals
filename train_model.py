@@ -13,7 +13,7 @@ import wandb
 from model_fastvdnet import FastVDnet,FastVDnet_7,FastVDnet_9
 from spiral_data import *
 from arg_parser import arg_parser
-
+from utils.util_func import real_imag2complex
 
 class LitModel(L.LightningModule):
     def __init__(self, encoder):
@@ -27,7 +27,10 @@ class LitModel(L.LightningModule):
         loss = F.mse_loss(y, y_hat) + F.l1_loss(y,y_hat)
         ims = []
         for idx in range(x.shape[0]):
-            ims.append(torch.concat((x[idx,-1,:,:],y[idx,-1,:,:],y_hat[idx,-1,:,:]),axis=1))
+            if(config_default.complex_i):
+                ims.append(torch.abs(real_imag2complex(torch.concat((x[idx,-2:,:,:],y[idx,:,:,:],y_hat[idx,:,:,:]),axis=2),axis=0)))
+            else:
+                ims.append(torch.concat((x[idx,-1,:,:],y[idx,-1,:,:],y_hat[idx,-1,:,:]),axis=1))
         
         wandb_logger.log_image(key="train_images", images=ims)
         
@@ -46,8 +49,11 @@ class LitModel(L.LightningModule):
         y_hat = self.encoder(x)
         ims = []
         for idx in range(x.shape[0]):
-            ims.append(torch.concat((x[idx,-1,:,:],y[idx,-1,:,:],y_hat[idx,-1,:,:]),axis=1))
-        
+            if(config_default.complex_i):
+                ims.append(torch.abs(real_imag2complex(torch.concat((x[idx,-2:,:,:],y[idx,:,:,:],y_hat[idx,:,:,:]),axis=2),axis=0)))
+            else:
+                ims.append(torch.concat((x[idx,-1,:,:],y[idx,-1,:,:],y_hat[idx,-1,:,:]),axis=1))
+                
         wandb_logger.log_image(key="test_images", images=ims)
         
         l1_loss  = F.l1_loss(y,y_hat)
@@ -64,8 +70,11 @@ class LitModel(L.LightningModule):
         y_hat = self.encoder(x)
         ims = []
         for idx in range(x.shape[0]):
-            ims.append(torch.concat((x[idx,-1,:,:],y[idx,-1,:,:],y_hat[idx,-1,:,:]),axis=1))
-        wandb_logger.log_image(key="val_images", images=ims)
+            if(config_default.complex_i):
+                ims.append(torch.abs(real_imag2complex(torch.concat((x[idx,-2:,:,:],y[idx,:,:,:],y_hat[idx,:,:,:]),axis=2),axis=0)))
+            else:
+                ims.append(torch.concat((x[idx,-1,:,:],y[idx,-1,:,:],y_hat[idx,-1,:,:]),axis=1))
+                wandb_logger.log_image(key="val_images", images=ims)
 
         l1_loss  = F.l1_loss(y,y_hat)
         mse_loss = F.mse_loss(y, y_hat)

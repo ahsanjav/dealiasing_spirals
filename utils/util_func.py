@@ -21,7 +21,11 @@ from colorama import Fore, Style
 import nibabel as nib
 
 # -------------------------------------------------------------------------------------------------
-
+def real_imag2complex(input,axis):
+    if(axis==0):
+       return torch.complex(input[0,:,:],input[1,:,:]) 
+    if(axis==1):
+        return torch.complex(input[:,0,:,:],input[:,1,:,:])
 def save_inference_results(input, output, gmap, output_dir, noisy_image=None, sd_image=None):
 
     os.makedirs(output_dir, exist_ok=True)
