@@ -21,7 +21,10 @@ def arg_parser():
     parser.add_argument("--epochs", type=int, default=10, help='epochs')
     parser.add_argument("--cuda", type=int, default=1, help='using servers')
     parser.add_argument("--num_workers", type=int, default=1, help='num workers')
-    parser.add_argument("--gpus", type=int, default=4, help='num workers')
+    parser.add_argument("--gpus", type=int, default=4, help='num workers')    
+    parser.add_argument("--use_non_appended_keys", type=int, default=1, help='using servers')
+
+    
 
     
     parser.add_argument("--exp_name", type=str, default="cuda_t3st", help='name of the experiment')

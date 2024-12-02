@@ -108,7 +108,7 @@ for file in config_default.train_files:
         raise RuntimeError(f"File not found: {file}")
 
     logging.info(f"reading from file: {file}")
-    h5file = h5py.File(file, libver='earliest', mode='r')
+    h5file = h5py.File(file, mode='r')
     keys = list(h5file.keys())
 
     ratio = [0.7,0.15,0.15]
@@ -118,7 +118,7 @@ for file in config_default.train_files:
     #fix for a bug in AJ's data gen
     keyu =[]
     for k in keys:
-        if len(k)>15:
+        if config_default.use_non_appended_keys or len(k)>15:
             keyu.append(k)
 
     total_keys.append(keyu)
