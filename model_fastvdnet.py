@@ -77,7 +77,7 @@ class FastVDnet_7(nn.Module):
             x: Tensor, [N, num_frames*C, H, W] in the [0., 1.] range
         '''
         # Unpack inputs
-        (x0, x1, x2, x3, x4, x5, x6) = tuple(x[:, self.channels*m:self.channels*m+self.channels:2, :, :] for m in range(self.num_input_frames))
+        (x0, x1, x2, x3, x4, x5, x6) = tuple(x[:, self.channels*m:self.channels*m+self.channels, :, :] for m in range(self.num_input_frames))
 
         # First stage
         x20 = self.temp1(x0, x1, x2)
@@ -123,7 +123,7 @@ class FastVDnet_9(nn.Module):
             x: Tensor, [N, num_frames*C, H, W] in the [0., 1.] range
         '''
         # Unpack inputs
-        (x0, x1, x2, x3, x4, x5, x6, x7, x8) = tuple(x[:, self.channels*m:self.channels*m+self.channels:2, :, :] for m in range(self.num_input_frames))
+        (x0, x1, x2, x3, x4, x5, x6, x7, x8) = tuple(x[:, self.channels*m:self.channels*m+self.channels, :, :] for m in range(self.num_input_frames))
 
         # First stage
         x20 = self.temp1(x0, x1, x2)
