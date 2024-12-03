@@ -14,8 +14,8 @@ class FastVDnet(nn.Module):
         self.channels = config.no_in_channel
         self.num_input_frames = 5
         # Define models of each denoising stage
-        self.temp1 = DenBlock(num_input_frames=3*self.channels,outchannel=self.channels)
-        self.temp2 = DenBlock(num_input_frames=3*self.channels,outchannel=self.channels)
+        self.temp1 = DenBlock(num_input_frames=3*self.channels,outchannel=1)
+        self.temp2 = DenBlock(num_input_frames=3*self.channels,outchannel=1)
         # Init weights
         self.reset_params()
 
