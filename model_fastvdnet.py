@@ -14,8 +14,8 @@ class FastVDnet(nn.Module):
         self.channels = config.no_in_channel
         self.num_input_frames = 5
         # Define models of each denoising stage
-        self.temp1 = DenBlock(num_input_frames=3,outchannel=1)
-        self.temp2 = DenBlock(num_input_frames=3,outchannel=1)
+        self.temp1 = DenBlock(num_input_frames=3*self.channels,outchannel=self.channels)
+        self.temp2 = DenBlock(num_input_frames=3*self.channels,outchannel=self.channels)
         # Init weights
         self.reset_params()
 
@@ -30,10 +30,10 @@ class FastVDnet(nn.Module):
 
     def forward(self, x):
         '''Args:
-			x: Tensor, [N, num_frames*C, H, W] in the [0., 1.] range
-		'''
-		# Unpack inputs
-        (x0, x1, x2, x3, x4) = tuple(x[:, self.channels*m:self.channels*m+self.channels:2, :, :] for m in range(self.num_input_frames))
+            x: Tensor, [N, num_frames*C, H, W] in the [0., 1.] range
+        '''
+        # Unpack inputs
+        (x0, x1, x2, x3, x4) = tuple(x[:, self.channels*m:self.channels*m+self.channels, :, :] for m in range(self.num_input_frames))
 
         # First stage
         x20 = self.temp1(x0, x1, x2)
@@ -43,8 +43,8 @@ class FastVDnet(nn.Module):
         #Second stage
         x = self.temp2(x20, x21, x22)
 
-        if(self.channels>1):
-            x = torch.cat((x, x*0), dim=1) # adding second dim for FM imaging complex processing
+        # if(self.channels>1):
+        #     x = torch.cat((x, x*0), dim=1) # adding second dim for FM imaging complex processing
         
         return x
 
@@ -57,7 +57,7 @@ class FastVDnet_7(nn.Module):
         self.channels = config.no_in_channel
         self.num_input_frames = 7
         # Define models of each denoising stage
-        self.temp1 = DenBlock(num_input_frames=3,outchannel=1)
+        self.temp1 = DenBlock(num_input_frames=3*self.channels,outchannel=self.channels)
         self.temp2 = FastVDnet(config)
         
         # Init weights
@@ -74,9 +74,9 @@ class FastVDnet_7(nn.Module):
 
     def forward(self, x):
         '''Args:
-			x: Tensor, [N, num_frames*C, H, W] in the [0., 1.] range
-		'''
-		# Unpack inputs
+            x: Tensor, [N, num_frames*C, H, W] in the [0., 1.] range
+        '''
+        # Unpack inputs
         (x0, x1, x2, x3, x4, x5, x6) = tuple(x[:, self.channels*m:self.channels*m+self.channels:2, :, :] for m in range(self.num_input_frames))
 
         # First stage
@@ -89,8 +89,8 @@ class FastVDnet_7(nn.Module):
         #Second stage
         x   = self.temp2(torch.cat((x20, x21, x22, x23, x24),axis=1))
 
-        if(self.channels>1):
-            x = torch.cat((x, x*0), dim=1) # adding second dim for FM imaging complex processing
+        # if(self.channels>1):
+        #     x = torch.cat((x, x*0), dim=1) # adding second dim for FM imaging complex processing
         
         return x
 
@@ -103,7 +103,7 @@ class FastVDnet_9(nn.Module):
         self.channels = config.no_in_channel
         self.num_input_frames = 9
         # Define models of each denoising stage
-        self.temp1 = DenBlock(num_input_frames=3,outchannel=1)
+        self.temp1 = DenBlock(num_input_frames=3*self.channels,outchannel=self.channels)
         self.temp2 = FastVDnet_7(config)
         
         # Init weights
@@ -120,9 +120,9 @@ class FastVDnet_9(nn.Module):
 
     def forward(self, x):
         '''Args:
-			x: Tensor, [N, num_frames*C, H, W] in the [0., 1.] range
-		'''
-		# Unpack inputs
+            x: Tensor, [N, num_frames*C, H, W] in the [0., 1.] range
+        '''
+        # Unpack inputs
         (x0, x1, x2, x3, x4, x5, x6, x7, x8) = tuple(x[:, self.channels*m:self.channels*m+self.channels:2, :, :] for m in range(self.num_input_frames))
 
         # First stage
@@ -139,8 +139,8 @@ class FastVDnet_9(nn.Module):
         x   = self.temp2(torch.cat((x20, x21, x22, x23, x24, x25, x26),axis=1))
 
 
-        if(self.channels>1):
-            x = torch.cat((x, x*0), dim=1) # adding second dim for FM imaging complex processing
+        # if(self.channels>1):
+        #     x = torch.cat((x, x*0), dim=1) # adding second dim for FM imaging complex processing
         
         return x
 
@@ -149,13 +149,13 @@ class CvBlock(nn.Module):
     def __init__(self, in_ch, out_ch):
        super(CvBlock, self).__init__()
        self.convblock = nn.Sequential(
-			nn.Conv2d(in_ch, out_ch, kernel_size=3, padding=1, bias=False),
-			#nn.BatchNorm2d(out_ch),
-			nn.ReLU(inplace=True),
-			nn.Conv2d(out_ch, out_ch, kernel_size=3, padding=1, bias=False),
-			#nn.BatchNorm2d(out_ch),
-			nn.ReLU(inplace=True)
-		)
+            nn.Conv2d(in_ch, out_ch, kernel_size=3, padding=1, bias=False),
+            #nn.BatchNorm2d(out_ch),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(out_ch, out_ch, kernel_size=3, padding=1, bias=False),
+            #nn.BatchNorm2d(out_ch),
+            nn.ReLU(inplace=True)
+        )
 
     def forward(self, x):
         return self.convblock(x)
@@ -166,58 +166,58 @@ class InputCvBlock(nn.Module):
         super(InputCvBlock, self).__init__()
         self.interm_ch = 32
         self.convblock = nn.Sequential(
-			nn.Conv2d(num_in_frames, num_in_frames*self.interm_ch, \
-					  kernel_size=3, padding=1, groups=num_in_frames, bias=False),
-			#nn.BatchNorm2d(num_in_frames*self.interm_ch),
-			nn.ReLU(inplace=True),
-			nn.Conv2d(num_in_frames*self.interm_ch, out_ch, kernel_size=3, padding=1, bias=False),
-			#nn.BatchNorm2d(out_ch),
-			nn.ReLU(inplace=True)
-		)
+            nn.Conv2d(num_in_frames, num_in_frames*self.interm_ch, \
+                      kernel_size=3, padding=1, groups=num_in_frames, bias=False),
+            #nn.BatchNorm2d(num_in_frames*self.interm_ch),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(num_in_frames*self.interm_ch, out_ch, kernel_size=3, padding=1, bias=False),
+            #nn.BatchNorm2d(out_ch),
+            nn.ReLU(inplace=True)
+        )
 
     def forward(self, x):
         return self.convblock(x)
 
 class DownBlock(nn.Module):
-	'''Downscale + (Conv2d => BN => ReLU)*2'''
-	def __init__(self, in_ch, out_ch):
-		super(DownBlock, self).__init__()
-		self.convblock = nn.Sequential(
-			nn.Conv2d(in_ch, out_ch, kernel_size=3, padding=1, stride=2, bias=False),
-			#nn.BatchNorm2d(out_ch),
-			nn.ReLU(inplace=True),
-			CvBlock(out_ch, out_ch)
-		)
+    '''Downscale + (Conv2d => BN => ReLU)*2'''
+    def __init__(self, in_ch, out_ch):
+        super(DownBlock, self).__init__()
+        self.convblock = nn.Sequential(
+            nn.Conv2d(in_ch, out_ch, kernel_size=3, padding=1, stride=2, bias=False),
+            #nn.BatchNorm2d(out_ch),
+            nn.ReLU(inplace=True),
+            CvBlock(out_ch, out_ch)
+        )
 
-	def forward(self, x):
-		return self.convblock(x)
+    def forward(self, x):
+        return self.convblock(x)
 
 class UpBlock(nn.Module):
-	'''(Conv2d => BN => ReLU)*2 + Upscale'''
-	def __init__(self, in_ch, out_ch):
-		super(UpBlock, self).__init__()
-		self.convblock = nn.Sequential(
-			CvBlock(in_ch, in_ch),
-			nn.Conv2d(in_ch, out_ch*4, kernel_size=3, padding=1, bias=False),
-			nn.PixelShuffle(2)
-		)
+    '''(Conv2d => BN => ReLU)*2 + Upscale'''
+    def __init__(self, in_ch, out_ch):
+        super(UpBlock, self).__init__()
+        self.convblock = nn.Sequential(
+            CvBlock(in_ch, in_ch),
+            nn.Conv2d(in_ch, out_ch*4, kernel_size=3, padding=1, bias=False),
+            nn.PixelShuffle(2)
+        )
 
-	def forward(self, x):
-		return self.convblock(x)
+    def forward(self, x):
+        return self.convblock(x)
 
 class OutputCvBlock(nn.Module):
-	'''Conv2d => BN => ReLU => Conv2d'''
-	def __init__(self, in_ch, out_ch):
-		super(OutputCvBlock, self).__init__()
-		self.convblock = nn.Sequential(
-			nn.Conv2d(in_ch, in_ch, kernel_size=3, padding=1, bias=False),
-			#nn.BatchNorm2d(in_ch),
-			nn.ReLU(inplace=True),
-			nn.Conv2d(in_ch, out_ch, kernel_size=3, padding=1, bias=False)
-		)
+    '''Conv2d => BN => ReLU => Conv2d'''
+    def __init__(self, in_ch, out_ch):
+        super(OutputCvBlock, self).__init__()
+        self.convblock = nn.Sequential(
+            nn.Conv2d(in_ch, in_ch, kernel_size=3, padding=1, bias=False),
+            #nn.BatchNorm2d(in_ch),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(in_ch, out_ch, kernel_size=3, padding=1, bias=False)
+        )
 
-	def forward(self, x):
-		return self.convblock(x)
+    def forward(self, x):
+        return self.convblock(x)
 
 class DenBlock(nn.Module):
     """ Definition of the denosing block of FastDVDnet.
@@ -271,3 +271,4 @@ class DenBlock(nn.Module):
         # x = in1 - x
         return x
   
+
