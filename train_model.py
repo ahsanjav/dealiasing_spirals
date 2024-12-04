@@ -14,6 +14,7 @@ from model_fastvdnet import FastVDnet,FastVDnet_7,FastVDnet_9
 from spiral_data import *
 from arg_parser import arg_parser
 from utils.util_func import real_imag2complex
+from torchmetrics.image import StructuralSimilarityIndexMeasure, MultiScaleStructuralSimilarityIndexMeasure
 
 class LitModel(L.LightningModule):
     def __init__(self, encoder):
@@ -36,10 +37,27 @@ class LitModel(L.LightningModule):
         
         l1_loss  = F.l1_loss(y,y_hat)
         mse_loss = F.mse_loss(y, y_hat)
-        loss = l1_loss + mse_loss
-        self.log("train_loss", loss,sync_dist=True)
+        ssim = MultiScaleStructuralSimilarityIndexMeasure(kernel_size=5).to(x.device)
+
+        if(config_default.complex_i):
+            pred = torch.abs(real_imag2complex(y,axis=1))
+            target = torch.abs(real_imag2complex(y_hat,axis=1))
+            pred = pred[:,np.newaxis,:,:]
+            target = target[:,np.newaxis,:,:]
+        else:
+            pred = torch.abs(y)
+            target = torch.abs(y_hat)
+        ssim_loss = ssim(pred,target)
+        
+        
+        loss = l1_loss + mse_loss 
+
+        
         self.log("train_loss_mse", mse_loss,sync_dist=True)
         self.log("train_loss_l1", l1_loss,sync_dist=True)
+        
+        self.log("train_loss", loss,sync_dist=True)
+        self.log("train_loss_ssim", ssim_loss,sync_dist=True)
 
         return loss
     
@@ -58,10 +76,25 @@ class LitModel(L.LightningModule):
         
         l1_loss  = F.l1_loss(y,y_hat)
         mse_loss = F.mse_loss(y, y_hat)
+        ssim = MultiScaleStructuralSimilarityIndexMeasure(kernel_size=5).to(x.device)
+        if(config_default.complex_i):
+            pred = torch.abs(real_imag2complex(y,axis=1))
+            target = torch.abs(real_imag2complex(y_hat,axis=1))
+            pred = pred[:,np.newaxis,:,:]
+            target = target[:,np.newaxis,:,:]
+        else:
+            pred = torch.abs(y)
+            target = torch.abs(y_hat)
+        ssim_loss = ssim(pred,target)  
+
         test_loss = l1_loss + mse_loss
-        self.log("test_loss", test_loss,sync_dist=True)
+        
         self.log("test_loss_mse", mse_loss,sync_dist=True)
         self.log("test_loss_l1", l1_loss,sync_dist=True)
+
+        self.log("test_loss_ssim", ssim_loss,sync_dist=True)
+        self.log("test_loss", test_loss,sync_dist=True)
+
 
 
     def validation_step(self, batch, batch_idx):
@@ -79,11 +112,24 @@ class LitModel(L.LightningModule):
 
         l1_loss  = F.l1_loss(y,y_hat)
         mse_loss = F.mse_loss(y, y_hat)
+        ssim = MultiScaleStructuralSimilarityIndexMeasure(kernel_size=5).to(x.device)
+        if(config_default.complex_i):
+            pred = torch.abs(real_imag2complex(y,axis=1))
+            target = torch.abs(real_imag2complex(y_hat,axis=1))
+            pred = pred[:,np.newaxis,:,:]
+            target = target[:,np.newaxis,:,:]
+        else:
+            pred = torch.abs(y)
+            target = torch.abs(y_hat)
+        ssim_loss = ssim(pred,target)
         val_loss = l1_loss + mse_loss
-        self.log("val_loss", val_loss,sync_dist=True)
+
+    
         self.log("val_loss_mse", mse_loss,sync_dist=True)
         self.log("val_loss_l1", l1_loss,sync_dist=True)
-
+    
+        self.log("val_loss", val_loss,sync_dist=True)
+        self.log("val_ssim_loss", ssim_loss,sync_dist=True)
 
 
     def configure_optimizers(self):
