@@ -16,6 +16,7 @@ from arg_parser import arg_parser
 from utils.util_func import real_imag2complex
 from torchmetrics.image import StructuralSimilarityIndexMeasure, MultiScaleStructuralSimilarityIndexMeasure
 
+# Define the LIT model
 class LitModel(L.LightningModule):
     def __init__(self, encoder):
         super().__init__()
@@ -147,10 +148,12 @@ class LitModel(L.LightningModule):
         # }
         return optimizer
 
-#configure 
+# Code run 
+#configure from arg parser
 config_default = arg_parser()
-#loading data
 
+
+#loading data
 for file in config_default.train_files:
     if not os.path.exists(file):
         raise RuntimeError(f"File not found: {file}")
@@ -159,18 +162,20 @@ for file in config_default.train_files:
 total_keys = []
 h5files    = []
 for file in config_default.train_files:
-
+#check files if they exist
     if not os.path.exists(file):
         raise RuntimeError(f"File not found: {file}")
-
+#Get all keys
     logging.info(f"reading from file: {file}")
     h5file = h5py.File(file, mode='r')
     keys = list(h5file.keys())
 
     ratio = [0.7,0.15,0.15]
 
+#Only get the data for the undersampling rate specified in training
     keys = [k+f"/{config_default.usample}" for k in keys]
     
+
 
     #fix for a bug in AJ's data gen
     keyu =[]
@@ -201,7 +206,7 @@ valid_set_size = int(len(train_set)-train_set_size-test_set_size)
 seed = torch.Generator().manual_seed(42)
 train_set, valid_set, test_set = data.random_split(train_set, [train_set_size, valid_set_size,test_set_size], generator=seed)
 
-# model
+# model choice
 if(config_default.time == 5):
     m = FastVDnet(config_default)
 elif(config_default.time == 7):
