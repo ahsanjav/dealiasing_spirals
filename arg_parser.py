@@ -24,6 +24,7 @@ def arg_parser():
     parser.add_argument("--gpus", type=int, default=4, help='num workers')    
     parser.add_argument("--use_non_appended_keys", type=int, default=1, help='using servers')
     parser.add_argument("--ssim_only", type=int, default=1, help='use ssim only')
+    parser.add_argument("--lr", type=float, default=0.0001, help='use ssim only')
     
 
     

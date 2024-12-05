@@ -15,138 +15,7 @@ from spiral_data import *
 from arg_parser import arg_parser
 from utils.util_func import real_imag2complex
 from torchmetrics.image import StructuralSimilarityIndexMeasure, MultiScaleStructuralSimilarityIndexMeasure
-
-# Define the LIT model
-class LitModel(L.LightningModule):
-    def __init__(self, encoder):
-        super().__init__()
-        self.encoder = encoder
-
-    def training_step(self, batch, batch_idx):
-        # training_step defines the train loop.
-        x, y = batch
-        y_hat = self.encoder(x)
-        loss = F.mse_loss(y, y_hat) + F.l1_loss(y,y_hat)
-        ims = []
-        for idx in range(x.shape[0]):
-            if(config_default.complex_i):
-                ims.append(torch.abs(real_imag2complex(torch.concat((x[idx,-2:,:,:],y[idx,:,:,:],y_hat[idx,:,:,:]),axis=2),axis=0)))
-            else:
-                ims.append(torch.concat((x[idx,-1,:,:],y[idx,-1,:,:],y_hat[idx,-1,:,:]),axis=1))
-        
-        wandb_logger.log_image(key="train_images", images=ims)
-        
-        l1_loss  = F.l1_loss(y,y_hat)
-        mse_loss = F.mse_loss(y, y_hat)
-        ssim = MultiScaleStructuralSimilarityIndexMeasure(kernel_size=5).to(x.device)
-
-        if(config_default.complex_i):
-            pred = torch.abs(real_imag2complex(y,axis=1))
-            target = torch.abs(real_imag2complex(y_hat,axis=1))
-            pred = pred[:,np.newaxis,:,:]
-            target = target[:,np.newaxis,:,:]
-        else:
-            pred = torch.abs(y)
-            target = torch.abs(y_hat)
-        ssim_loss = ssim(pred,target)
-        
-        
-        loss = l1_loss + mse_loss 
-
-        
-        self.log("train_loss_mse", mse_loss,sync_dist=True)
-        self.log("train_loss_l1", l1_loss,sync_dist=True)
-        
-        self.log("train_loss", loss,sync_dist=True)
-        self.log("train_loss_ssim", ssim_loss,sync_dist=True)
-
-        return loss
-    
-    def test_step(self, batch, batch_idx):
-        # this is the test loop
-        x, y = batch
-        y_hat = self.encoder(x)
-        ims = []
-        for idx in range(x.shape[0]):
-            if(config_default.complex_i):
-                ims.append(torch.abs(real_imag2complex(torch.concat((x[idx,-2:,:,:],y[idx,:,:,:],y_hat[idx,:,:,:]),axis=2),axis=0)))
-            else:
-                ims.append(torch.concat((x[idx,-1,:,:],y[idx,-1,:,:],y_hat[idx,-1,:,:]),axis=1))
-                
-        wandb_logger.log_image(key="test_images", images=ims)
-        
-        l1_loss  = F.l1_loss(y,y_hat)
-        mse_loss = F.mse_loss(y, y_hat)
-        ssim = MultiScaleStructuralSimilarityIndexMeasure(kernel_size=5).to(x.device)
-        if(config_default.complex_i):
-            pred = torch.abs(real_imag2complex(y,axis=1))
-            target = torch.abs(real_imag2complex(y_hat,axis=1))
-            pred = pred[:,np.newaxis,:,:]
-            target = target[:,np.newaxis,:,:]
-        else:
-            pred = torch.abs(y)
-            target = torch.abs(y_hat)
-        ssim_loss = ssim(pred,target)  
-
-        test_loss = l1_loss + mse_loss
-        
-        self.log("test_loss_mse", mse_loss,sync_dist=True)
-        self.log("test_loss_l1", l1_loss,sync_dist=True)
-
-        self.log("test_loss_ssim", ssim_loss,sync_dist=True)
-        self.log("test_loss", test_loss,sync_dist=True)
-
-
-
-    def validation_step(self, batch, batch_idx):
-        # this is the validation loop
-        x, y = batch
-        y_hat = self.encoder(x)
-        ims = []
-        for idx in range(x.shape[0]):
-            if(config_default.complex_i):
-                ims.append(torch.abs(real_imag2complex(torch.concat((x[idx,-2:,:,:],y[idx,:,:,:],y_hat[idx,:,:,:]),axis=2),axis=0)))
-            else:
-                ims.append(torch.concat((x[idx,-1,:,:],y[idx,-1,:,:],y_hat[idx,-1,:,:]),axis=1))
-        
-        wandb_logger.log_image(key="val_images", images=ims)
-
-        l1_loss  = F.l1_loss(y,y_hat)
-        mse_loss = F.mse_loss(y, y_hat)
-        ssim = MultiScaleStructuralSimilarityIndexMeasure(kernel_size=5).to(x.device)
-        if(config_default.complex_i):
-            pred = torch.abs(real_imag2complex(y,axis=1))
-            target = torch.abs(real_imag2complex(y_hat,axis=1))
-            pred = pred[:,np.newaxis,:,:]
-            target = target[:,np.newaxis,:,:]
-        else:
-            pred = torch.abs(y)
-            target = torch.abs(y_hat)
-        ssim_loss = ssim(pred,target)
-        val_loss = l1_loss + mse_loss
-
-    
-        self.log("val_loss_mse", mse_loss,sync_dist=True)
-        self.log("val_loss_l1", l1_loss,sync_dist=True)
-    
-        self.log("val_loss", val_loss,sync_dist=True)
-        self.log("val_ssim_loss", ssim_loss,sync_dist=True)
-
-
-    def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
-        # return {
-        # "optimizer": optimizer,
-        # "lr_scheduler": {
-        #     "scheduler": torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer),
-        #     "monitor": "train_loss",
-        #     "frequency": 1,
-        #     "interval": "epoch",
-        #     # If "monitor" references validation metrics, then "frequency" should be set to a
-        #     # multiple of "trainer.check_val_every_n_epoch".
-        # },
-        # }
-        return optimizer
+from LITmodel import LitModel
 
 # Code run 
 #configure from arg parser
@@ -167,24 +36,24 @@ for file in config_default.train_files:
         raise RuntimeError(f"File not found: {file}")
 #Get all keys
     logging.info(f"reading from file: {file}")
-    h5file = h5py.File(file, mode='r')
-    keys = list(h5file.keys())
+    with h5py.File(file, mode='r') as f:
+        keys = list(f.keys())
 
-    ratio = [0.7,0.15,0.15]
+        ratio = [0.7,0.15,0.15]
 
-#Only get the data for the undersampling rate specified in training
-    keys = [k+f"/{config_default.usample}" for k in keys]
-    
+    #Only get the data for the undersampling rate specified in training
+        keys = [k+f"/{config_default.usample}" for k in keys]
+        
 
 
-    #fix for a bug in AJ's data gen
-    keyu =[]
-    for k in keys:
-        if config_default.use_non_appended_keys or len(k)>15:
-            keyu.append(k)
+        #fix for a bug in AJ's data gen
+        keyu =[]
+        for k in keys:
+            if config_default.use_non_appended_keys or len(k)>15:
+                keyu.append(k)
 
-    total_keys.append(keyu)
-    h5files.append(h5file)
+        total_keys.append(keyu)
+        h5files.append(file)
 
 
 
@@ -214,10 +83,12 @@ elif(config_default.time == 7):
 elif(config_default.time == 9):
     m = FastVDnet_9(config_default)
 
-model = LitModel(m)
-
 wandb_logger = WandbLogger(entity='gadgetron',project="FASTVDNET_dealiasing", log_model="all",name=config_default.exp_name)
 wandb_logger.experiment.log({"test_set": test_set.indices})
+
+model = LitModel(m,config_default,wandb_logger)
+
+
 
 # train model
 if(config_default.cuda):

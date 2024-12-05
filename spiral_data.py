@@ -100,8 +100,9 @@ class MRIReconSpiralDatasetTrain():
             key_image_out = key_image_out_parts[0]+'/1.0/'+key_image_out_parts[-1]
             data_set_failed = 0
             try:
-                in_image    = np.array(self.h5file[ind][key_image])
-                out_image   = np.array(self.h5file[ind][key_image_out])
+                with h5py.File(self.h5file[ind]) as f:
+                    in_image    = np.array(f[key_image])
+                    out_image   = np.array(f[key_image_out])
             except:
                 print('Dataset not working')
                 data_set_failed = 1
