@@ -10,7 +10,7 @@ from tqdm import tqdm
 import numpy as np
 from pathlib import Path
 from colorama import Fore, Style
-
+import h5py
 Current_DIR = Path(__file__).parents[0].resolve()
 sys.path.append(str(Current_DIR))
 
@@ -55,8 +55,9 @@ def load_images_from_h5file_cart_recon(h5file, keys, max_load=100000):
         with tqdm(total=len(keys[i]), bar_format=get_bar_format()) as pbar:
             for n, key in enumerate(keys[i]):
                 if num_loaded < max_load:
-                    images.append([np.array(h5file[i][key+"/input"]), np.array(h5file[i][key+"/output"]),
-                                   np.array(h5file[i][key+"/csm"]),i])
+                    with h5py.File(h5file[i]) as f:
+                        images.append([np.array(f[key+"/input"]), np.array(f[key+"/output"]),
+                                   np.array(f[key+"/csm"]),i])
                     num_loaded += 1
                 else:
                     #images.append([key+"/in_image", key+"/out_image", i])
@@ -136,7 +137,8 @@ def load_images_from_h5file(h5file, keys, max_load=100000):
             with tqdm(total=len(keys[i]), bar_format=get_bar_format()) as pbar:
                 for n, key in enumerate(keys[i]):
                     if num_loaded < max_load:
-                        images.append([np.array(h5file[i][key+"/image"]), np.array(h5file[i][key+"/gmap"]), np.array(h5file[i][key+"/image_resized"]), i])
+                        with h5py.File(h5file[i]) as f:
+                            images.append([np.array(f[key+"/image"]), np.array(f[key+"/gmap"]), np.array(f[key+"/image_resized"]), i])
                         num_loaded += 1
                     else:
                         images.append([key+"/image", key+"/gmap", key+"/image_resized", i])
@@ -168,6 +170,7 @@ def load_images_for_statistics(h5file, keys, max_loaded=30):
             with tqdm(total=len(keys[i]), bar_format=get_bar_format()) as pbar:
                 case_num_loaded = 0
                 for n, key in enumerate(keys[i]):
+                    
                     im = np.array(h5file[i][key+"/image"])
                     gmap = np.array(h5file[i][key+"/gmap"])
 
