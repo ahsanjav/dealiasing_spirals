@@ -42,8 +42,8 @@
             "args": [
                 "--train_files"
                 //,"/data_drive/_0_retro_cines_kspace_spiral_walsh.h5"
-                //,"/data_drive/_0_retro_cines_kspace_spiral_walsh_itt_x.h5"
-                 ,"/mount/datalit/datalit/_1_retro_cines_kspace_spiral.h5"
+                ,"/data_drive/_0_retro_cines_kspace_spiral_walsh_itt_x.h5"
+                // ,"/mount/datalit/datalit/_1_retro_cines_kspace_spiral.h5"
                 // ,"/mount/datalit/datalit/_2_retro_cines_kspace_spiral.h5"
                 // ,"/mount/datalit/datalit/_3_retro_cines_kspace_spiral.h5"
                 // ,"/mount/datalit/datalit/_4_retro_cines_kspace_spiral.h5"

@@ -36,7 +36,7 @@ for file in config_default.train_files:
         raise RuntimeError(f"File not found: {file}")
 #Get all keys
     logging.info(f"reading from file: {file}")
-    with h5py.File(file, mode='r') as f:
+    with h5py.File(file, libver='earliest',mode='r') as f:
         keys = list(f.keys())
 
         ratio = [0.7,0.15,0.15]
