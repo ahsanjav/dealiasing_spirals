@@ -229,9 +229,9 @@ class MRIReconSpiralDatasetTrain():
 
             return flip(data), flip(data2)
         
-    def get_stat(self):
-        stat = load_images_for_statistics_recon(self.h5file, self.keys)
-        return stat
+    # def get_stat(self):
+    #     stat = load_images_for_statistics_recon(self.h5file, self.keys)
+    #     return stat
 
     def __len__(self):
         """
