@@ -41,7 +41,7 @@ class LitModel(L.LightningModule):
         
         l1_loss  = F.l1_loss(y,y_hat)
         mse_loss = F.mse_loss(y, y_hat)
-        ssim = StructuralSimilarityIndexMeasure(data_range=1.0,kernel_size=3,sigma=0.5).to(x.device)
+        ssim = StructuralSimilarityIndexMeasure(data_range=1.0,kernel_size=3,sigma=0.5).to(self.device)
 
         if(self.config_default.complex_i):
             pred = torch.abs(real_imag2complex(y,axis=1))
@@ -82,7 +82,7 @@ class LitModel(L.LightningModule):
         
         l1_loss  = F.l1_loss(y,y_hat)
         mse_loss = F.mse_loss(y, y_hat)
-        ssim = StructuralSimilarityIndexMeasure(data_range=1.0,kernel_size=3,sigma=0.5).to(x.device)
+        ssim = StructuralSimilarityIndexMeasure(data_range=1.0,kernel_size=3,sigma=0.5).to(self.device)
         if(self.config_default.complex_i):
             pred = torch.abs(real_imag2complex(y,axis=1))
             target = torch.abs(real_imag2complex(y_hat,axis=1))
@@ -121,7 +121,7 @@ class LitModel(L.LightningModule):
 
         l1_loss  = F.l1_loss(y,y_hat)
         mse_loss = F.mse_loss(y, y_hat)
-        ssim = StructuralSimilarityIndexMeasure(data_range=1.0,kernel_size=3,sigma=0.5).to(x.device)
+        ssim = StructuralSimilarityIndexMeasure(data_range=1.0,kernel_size=3,sigma=0.5).to(self.device)
         if(self.config_default.complex_i):
             pred = torch.abs(real_imag2complex(y,axis=1))
             target = torch.abs(real_imag2complex(y_hat,axis=1))

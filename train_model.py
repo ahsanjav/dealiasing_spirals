@@ -16,11 +16,12 @@ from arg_parser import arg_parser
 from utils.util_func import real_imag2complex
 from torchmetrics.image import StructuralSimilarityIndexMeasure, MultiScaleStructuralSimilarityIndexMeasure
 from LITmodel import LitModel
+from torch.utils.data import ConcatDataset
 
 # Code run 
 #configure from arg parser
 config_default = arg_parser()
-
+torch.set_float32_matmul_precision("medium")
 
 #loading data
 for file in config_default.train_files:
@@ -63,7 +64,7 @@ for (i,h_file) in enumerate(h5files):
     train_set.append(MRIReconSpiralDatasetTrain(h5file=[h_file], keys=[total_keys[i]], max_load=-1, data_type='2dt', conf=config_default))
 
 #flatten
-train_set = [x for xs in train_set for x in xs]
+train_set = ConcatDataset(train_set)#[x for xs in train_set for x in xs]
 
 # use 20% of training data for validation
 train_set_size = int(len(train_set) * ratio[0])
@@ -83,12 +84,13 @@ elif(config_default.time == 7):
 elif(config_default.time == 9):
     m = FastVDnet_9(config_default)
 
-wandb_logger = WandbLogger(entity='gadgetron',project="FASTVDNET_dealiasing", log_model="all",name=config_default.exp_name)
+wandb_logger = WandbLogger(entity='ahsanjaved',project="FASTVDNET_dealiasing", log_model="all",name=config_default.exp_name)
 wandb_logger.experiment.log({"test_set": test_set.indices})
 
 model = LitModel(m,config_default,wandb_logger)
 
 
+model = torch.compile(model)
 
 # train model
 if(config_default.cuda):
@@ -107,9 +109,9 @@ else:
                     overfit_batches=1,
                     logger=wandb_logger)
 
+print("Start Training")
+trainer.fit(model=model, train_dataloaders=DataLoader(train_set, num_workers=config_default.num_workers,batch_size=config_default.batch_size,pin_memory=True,persistent_workers=True),
+            val_dataloaders=DataLoader(valid_set, num_workers=config_default.num_workers,batch_size=config_default.batch_size,pin_memory=True,persistent_workers=True))
 
-trainer.fit(model=model, train_dataloaders=DataLoader(train_set, num_workers=config_default.num_workers,batch_size=config_default.batch_size),
-            val_dataloaders=DataLoader(valid_set, num_workers=config_default.num_workers,batch_size=config_default.batch_size))
-
-trainer.test(model=model, dataloaders=DataLoader(test_set, num_workers=config_default.num_workers,batch_size=config_default.batch_size))
+trainer.test(model=model, dataloaders=DataLoader(test_set, num_workers=config_default.num_workers,batch_size=config_default.batch_size,pin_memory=True,persistent_workers=True))
 

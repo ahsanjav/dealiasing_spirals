@@ -152,7 +152,7 @@ class MRIReconSpiralDatasetTrain():
             #     else:    
             #         out_image = out_image[np.newaxis,:,:,:]
                     
-            if(self.config.normalize_images):
+            if(self.config.normalize_images == 1):
                 
                 normalize = lambda x: x/np.tile(np.max(np.abs(x),axis=(1,2)),[x.shape[1],1,1]).transpose(2,0,1)
                 
@@ -163,9 +163,9 @@ class MRIReconSpiralDatasetTrain():
                     out_image = normalize(out_image)
                 else:
                     pass
-            else:
-                in_image = in_image/1000.0
-                out_image = out_image/1000.0
+            elif(self.config.normalize_images>1):
+                in_image = in_image/float(self.config.normalize_images)
+                out_image = out_image/float(self.config.normalize_images)
 
             if(self.config.model_type ==  'FASTVDNET' and not self.config.complex_i):
                 in_image  = np.abs(in_image)
@@ -174,21 +174,12 @@ class MRIReconSpiralDatasetTrain():
                 out_image = out_image[np.newaxis,:,:,:]
                 in_image  = in_image[np.newaxis,:,:,:]
                 
-                in_image  = np.concatenate((in_image.real, in_image.imag),axis=0)/1.0#.transpose([1,0,2,3])
-                out_image = np.concatenate((out_image.real, out_image.imag),axis=0)/1.0#.transpose([1,0,2,3])
+                in_image  = np.concatenate((in_image.real, in_image.imag),axis=0)#.transpose([1,0,2,3])
+                out_image = np.concatenate((out_image.real, out_image.imag),axis=0)#.transpose([1,0,2,3])
 
                 out_image = out_image[:,-1,:,:]
                 in_image  = in_image.reshape(-1,in_image.shape[-2],in_image.shape[-1])
 
-            # if(self.config.complex_i): 
-            #     in_image  = np.concatenate((in_image.real, in_image.imag),axis=0)/1.0#.transpose([1,0,2,3])
-            #     out_image = np.concatenate((out_image.real, out_image.imag),axis=0)/1.0#.transpose([1,0,2,3])
-            # else:
-            #     in_image = abs(in_image)
-            #     out_image = abs(out_image)
-            
-            #if(out_image.shape != in_image.shape):
-            #    out_image = np.tile(out_image[:,-1,:,:],[1,in_image.shape[1],1,1])
 
             if(self.config.model_type ==  'FASTVDNET' and not self.config.complex_i):
                 out_image = out_image[-1,:,:]
