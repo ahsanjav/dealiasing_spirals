@@ -17,12 +17,14 @@ from utils.util_func import real_imag2complex
 from torchmetrics.image import StructuralSimilarityIndexMeasure, MultiScaleStructuralSimilarityIndexMeasure
 from LITmodel import LitModel
 from torch.utils.data import ConcatDataset
-
+import torch._dynamo
 # Code run 
+TORCH_LOGS="+dynamo"
+TORCHDYNAMO_VERBOSE=1
 #configure from arg parser
 config_default = arg_parser()
 torch.set_float32_matmul_precision("medium")
-
+torch._dynamo.config.suppress_errors = True
 #loading data
 for file in config_default.train_files:
     if not os.path.exists(file):
@@ -84,7 +86,7 @@ elif(config_default.time == 7):
 elif(config_default.time == 9):
     m = FastVDnet_9(config_default)
 
-wandb_logger = WandbLogger(entity='ahsanjaved',project="FASTVDNET_dealiasing", log_model="all",name=config_default.exp_name)
+wandb_logger = WandbLogger(entity='gadgetron',project="FASTVDNET_dealiasing", log_model="all",name=config_default.exp_name)
 wandb_logger.experiment.log({"test_set": test_set.indices})
 
 model = LitModel(m,config_default,wandb_logger)

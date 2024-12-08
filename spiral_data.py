@@ -153,8 +153,12 @@ class MRIReconSpiralDatasetTrain():
             #         out_image = out_image[np.newaxis,:,:,:]
                     
             if(self.config.normalize_images == 1):
-                
-                normalize = lambda x: x/np.tile(np.max(np.abs(x),axis=(1,2)),[x.shape[1],1,1]).transpose(2,0,1)
+                def normalize(x):
+                    denom = np.tile(np.max(np.abs(x),axis=(1,2)),[x.shape[1],1,1]).transpose(2,0,1)
+                    denom[denom==0] = 1.0
+                    denom[np.isnan(denom)] = 1.0
+                    return x/denom
+                #normalize = lambda x: x/np.tile(np.max(np.abs(x),axis=(1,2)),[x.shape[1],1,1]).transpose(2,0,1)
                 
                 
                 #in_image = in_image / np.amax(np.abs(in_image),axis=1)
@@ -174,8 +178,8 @@ class MRIReconSpiralDatasetTrain():
                 out_image = out_image[np.newaxis,:,:,:]
                 in_image  = in_image[np.newaxis,:,:,:]
                 
-                in_image  = np.concatenate((in_image.real, in_image.imag),axis=0)#.transpose([1,0,2,3])
-                out_image = np.concatenate((out_image.real, out_image.imag),axis=0)#.transpose([1,0,2,3])
+                in_image  = np.concatenate((in_image.real, in_image.imag),axis=0)/1.0#.transpose([1,0,2,3])
+                out_image = np.concatenate((out_image.real, out_image.imag),axis=0)/1.0#.transpose([1,0,2,3])
 
                 out_image = out_image[:,-1,:,:]
                 in_image  = in_image.reshape(-1,in_image.shape[-2],in_image.shape[-1])

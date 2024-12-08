@@ -25,12 +25,13 @@ def arg_parser():
     parser.add_argument("--use_non_appended_keys", type=int, default=1, help='using servers')
     parser.add_argument("--ssim_only", type=int, default=1, help='use ssim only')
     parser.add_argument("--lr", type=float, default=0.0001, help='use ssim only')
-    
+    parser.add_argument("--entity", type=str, default="gadgetron", help='wandb entity')
+    parser.add_argument("--project", type=str, default="FASTVDNET_dealiasing", help='wandb project')
+    parser.add_argument("--exp_name", type=str, default="cuda_t3st", help='wandb name of the experiment')
 
     
 
     
-    parser.add_argument("--exp_name", type=str, default="cuda_t3st", help='name of the experiment')
     ns = Nestedspace()
     
     args = parser.parse_args(namespace=ns)
