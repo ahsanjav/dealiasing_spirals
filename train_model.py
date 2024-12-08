@@ -92,7 +92,7 @@ wandb_logger.experiment.log({"test_set": test_set.indices})
 model = LitModel(m,config_default,wandb_logger)
 
 
-model = torch.compile(model)
+#model = torch.compile(model)
 
 # train model
 if(config_default.cuda):

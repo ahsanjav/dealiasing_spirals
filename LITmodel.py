@@ -30,14 +30,14 @@ class LitModel(L.LightningModule):
         x, y = batch
         y_hat = self.encoder(x)
         loss = F.mse_loss(y, y_hat) + F.l1_loss(y,y_hat)
-        ims = []
-        for idx in range(x.shape[0]):
-            if(self.config_default.complex_i):
-                ims.append(torch.abs(real_imag2complex(torch.concat((x[idx,-2:,:,:],y[idx,:,:,:],y_hat[idx,:,:,:]),axis=2),axis=0)))
-            else:
-                ims.append(torch.concat((x[idx,-1,:,:],y[idx,-1,:,:],y_hat[idx,-1,:,:]),axis=1))
+        # ims = []
+        # for idx in range(x.shape[0]):
+        #     if(self.config_default.complex_i):
+        #         ims.append(torch.abs(real_imag2complex(torch.concat((x[idx,-2:,:,:],y[idx,:,:,:],y_hat[idx,:,:,:]),axis=2),axis=0)))
+        #     else:
+        #         ims.append(torch.concat((x[idx,-1,:,:],y[idx,-1,:,:],y_hat[idx,-1,:,:]),axis=1))
         
-        self.wandb_logger.log_image(key="train_images", images=ims)
+        # self.wandb_logger.log_image(key="train_images", images=ims)
         
         l1_loss  = F.l1_loss(y,y_hat)
         mse_loss = F.mse_loss(y, y_hat)
