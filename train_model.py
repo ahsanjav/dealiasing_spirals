@@ -86,7 +86,7 @@ elif(config_default.time == 7):
 elif(config_default.time == 9):
     m = FastVDnet_9(config_default)
 
-wandb_logger = WandbLogger(entity='gadgetron',project="FASTVDNET_dealiasing", log_model="all",name=config_default.exp_name)
+wandb_logger = WandbLogger(entity=config_default.entity,project=config_default.project, log_model="all",name=config_default.exp_name)
 wandb_logger.experiment.log({"test_set": test_set.indices})
 
 model = LitModel(m,config_default,wandb_logger)
