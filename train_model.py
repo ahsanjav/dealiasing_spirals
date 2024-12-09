@@ -9,6 +9,7 @@ import torch.utils.data as data
 from torchvision import datasets
 import lightning as L
 from lightning.pytorch.loggers import WandbLogger
+from lightning.pytorch.callbacks import ModelCheckpoint
 import wandb
 from model_fastvdnet import FastVDnet,FastVDnet_7,FastVDnet_9
 from spiral_data import *
@@ -95,6 +96,9 @@ model = LitModel(m,config_default,wandb_logger)
 #model = torch.compile(model)
 
 
+# log model only if `val_accuracy` increases
+wandb_logger = WandbLogger(log_model="all")
+checkpoint_callback = ModelCheckpoint(monitor="val_accuracy", mode="max")
 
 # train model
 if(config_default.cuda):
@@ -105,13 +109,15 @@ if(config_default.cuda):
                     #precision="16-mixed",
                     max_epochs=config_default.epochs,
                     logger=wandb_logger,
+                    callbacks=[checkpoint_callback],
                     log_every_n_steps=4)   
 else: 
     trainer = L.Trainer(accelerator="mps", 
                     devices=1,
                     max_epochs=config_default.epochs,
                     overfit_batches=1,
-                    logger=wandb_logger)
+                    logger=wandb_logger,
+                    callbacks=[checkpoint_callback])
 
 print("Start Training")
 trainer.fit(model=model, train_dataloaders=DataLoader(train_set, num_workers=config_default.num_workers,batch_size=config_default.batch_size,pin_memory=True,persistent_workers=True),
