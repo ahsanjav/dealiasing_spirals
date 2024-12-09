@@ -94,6 +94,8 @@ model = LitModel(m,config_default,wandb_logger)
 
 #model = torch.compile(model)
 
+
+
 # train model
 if(config_default.cuda):
     trainer = L.Trainer(devices=config_default.gpus,
